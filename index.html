@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Repository</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="app-header">
+        <h1>Prompt Repository</h1>
+        <p>จัดเก็บและค้นหา Prompt ของคุณ</p>
+    </header>
+
+    <main class="container">
+        <div class="header-actions">
+            <button id="toggleFormBtn" class="btn-submit btn-toggle"><span style="font-size: 1.2em; font-weight: 900; margin-right: 4px;">+</span> เพิ่ม Prompt ใหม่</button>
+        </div>
+
+        <section class="card form-section" id="formContainer" style="display: none;">
+            <h2>📝 บันทึก Prompt ใหม่</h2>
+            <form id="promptForm">
+                <div class="form-group">
+                    <label for="type">ประเภท (Type)</label>
+                    <input type="text" id="type" name="type" required placeholder="เช่น Coding, Marketing, Writing, General...">
+                </div>
+                <div class="form-group">
+                    <label for="usefor">ใช้งานสำหรับ (Use for)</label>
+                    <input type="text" id="usefor" name="usefor" required placeholder="เช่น สร้างบทความ, เขียนโค้ด React...">
+                </div>
+                <div class="form-group">
+                    <label for="prompt">รายละเอียด (Prompt)</label>
+                    <textarea id="prompt" name="prompt" rows="5" required placeholder="วาง Prompt ที่นี่..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="note">หมายเหตุ (Note)</label>
+                    <textarea id="note" name="note" rows="3" placeholder="ข้อแนะนำเพิ่มเติม หรือ ตัวแปรที่ต้องแก้ (ถ้ามี)"></textarea>
+                </div>
+                <button type="submit" class="btn-submit" id="submitBtn">บันทึกข้อมูล</button>
+            </form>
+            <div id="statusMessage"></div>
+        </section>
+
+        <section class="card display-section">
+            <h2>🔍 ค้นหา Prompt</h2>
+            <div class="filter-group">
+                <label for="filterType">เลือกประเภท:</label>
+                <div class="filter-bar">
+                    <select id="filterType">
+                        <option value="all">ทั้งหมด (All)</option>
+                    </select>
+                    <button id="searchBtn" class="btn-submit btn-search">🔍 ค้นหา</button>
+                </div>
+            </div>
+
+            <div id="loader" class="loader" style="display: none;"></div>
+            
+            <div id="promptsContainer" class="prompts-grid">
+                <!-- ข้อมูล Prompt จะแสดงที่นี่ -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        Copyright 2026, by Tech for Ummah
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
