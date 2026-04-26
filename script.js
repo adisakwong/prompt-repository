@@ -1,11 +1,54 @@
 // NOTE: เปลี่ยน URL นี้เป็น Web App URL ของคุณที่ได้จากการ Deploy Google Apps Script (Code.gs)
 // const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqZGYpEdsK16zZixGcXVEzZPIJDhcZfGFJ5n7TErK6EqLkRVNYdummA6zTg0S5KrN5gg/exec';
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHTQSl44aqEmI71tMpdDc7ICCeFK3x409pngQ0zj_8Z_QVJ-fOXJjvhamHX2W5G4DydA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQHMfPrdFzXcA27xZD6dzGnIVCeBZEkmVaexiNFrfKy8hLM60TUKfgG38WrmaPrLRkuw/exec';
 
 let currentPrompts = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchTypes(); // โหลดแค่หมวดหมู่ตอนเปิดหน้า
+    checkLoginState();
+
+    // Login Form logic
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const passwordInput = document.getElementById('adminPassword');
+        const loginStatus = document.getElementById('loginStatus');
+        const submitBtn = loginForm.querySelector('button');
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'กำลังตรวจสอบ...';
+        loginStatus.textContent = '';
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'login', password: passwordInput.value })
+            });
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                localStorage.setItem('isLoggedIn', 'true');
+                showApp();
+            } else {
+                loginStatus.textContent = result.message;
+                loginStatus.className = 'error';
+                passwordInput.value = '';
+            }
+        } catch (error) {
+            loginStatus.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+            loginStatus.className = 'error';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'เข้าสู่ระบบ';
+        }
+    });
+
+    // Logout logic
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('isLoggedIn');
+        location.reload();
+    });
 
     const toggleFormBtn = document.getElementById('toggleFormBtn');
     const formContainer = document.getElementById('formContainer');
@@ -100,12 +143,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function checkLoginState() {
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+        showApp();
+    } else {
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('logoutBtn').style.display = 'none';
+    }
+}
+
+function showApp() {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'block';
+    fetchTypes();
+    fetchPrompts(); // โหลดข้อมูลทั้งหมดเริ่มต้น
+}
+
 async function fetchTypes() {
     if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL') return;
-    
+
     const filterSelect = document.getElementById('filterType');
     const currentValue = filterSelect.value;
-    
+
     // ตั้งสถานะกำลังโหลด
     filterSelect.disabled = true;
     filterSelect.innerHTML = '<option value="all">⏳ กำลังโหลดหมวดหมู่...</option>';
@@ -126,7 +185,7 @@ async function fetchTypes() {
                 filterSelect.value = currentValue;
             }
         } else {
-             filterSelect.innerHTML = '<option value="all">โหลดข้อมูลไม่สำเร็จ</option>';
+            filterSelect.innerHTML = '<option value="all">โหลดข้อมูลไม่สำเร็จ</option>';
         }
     } catch (error) {
         console.error('Fetch types error:', error);

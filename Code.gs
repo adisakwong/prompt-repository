@@ -1,6 +1,7 @@
 // เปลี่ยนเป็น ID ของ Google Sheet ของคุณ
 const SPREADSHEET_ID = '14SFF15StQb9_xJyEHtvZuDTrH8fQ_cDSniWVDlM5N04';
 const SHEET_NAME = 'prompts';
+const ADMIN_SHEET_NAME = 'admin';
 
 // จัดการการส่งข้อมูลแบบ GET (ดึงข้อมูล)
 function doGet(e) {
@@ -36,6 +37,15 @@ function doPost(e) {
       
       return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Saved successfully' }))
         .setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'login') {
+      const isCorrect = verifyPassword(data.password);
+      if (isCorrect) {
+        return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Login successful' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'รหัสผ่านไม่ถูกต้อง' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     }
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString() }))
@@ -52,7 +62,7 @@ function getTypesData() {
   if (lastRow <= 1) return { status: 'success', data: [] };
   
   const typesData = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  const uniqueTypes = [...new Set(typesData.map(r => r[0].toString().trim()).filter(t => t))];
+  const uniqueTypes = [...new Set(typesData.map(r => String(r[0] || '').trim()).filter(t => t))];
   
   return { status: 'success', data: uniqueTypes };
 }
@@ -72,7 +82,7 @@ function getPromptsData(filterType) {
   // สมมติว่าเรียงคอลัมน์ [Type, Usefor, Prompt, Note]
   let rows = data.slice(1);
   if (filterType && filterType !== 'all') {
-    rows = rows.filter(row => row[0].toString().trim() === filterType.trim());
+    rows = rows.filter(row => String(row[0] || '').trim() === filterType.trim());
   }
   
   const formattedData = rows.map(row => {
@@ -85,4 +95,40 @@ function getPromptsData(filterType) {
   });
   
   return { status: 'success', data: formattedData.reverse() }; //เรียงข้อมูลใหม่ล่าสุดขึ้นก่อน
+}
+
+// ฟังก์ชันตรวจสอบรหัสผ่านจาก Sheet 'admin'
+function verifyPassword(inputPassword) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    // ค้นหา Sheet ชื่อ admin แบบไม่สนใจตัวพิมพ์เล็กพิมพ์ใหญ่
+    let adminSheet = ss.getSheetByName(ADMIN_SHEET_NAME);
+    if (!adminSheet) {
+      const sheets = ss.getSheets();
+      adminSheet = sheets.find(s => s.getName().toLowerCase().trim() === 'admin');
+    }
+    
+    if (!adminSheet) return false;
+    
+    const data = adminSheet.getDataRange().getValues();
+    const input = String(inputPassword || '').trim();
+    
+    if (input === '') return false;
+    
+    // วนลูปตรวจเช็คทุกช่องใน Sheet 'admin' 
+    // ถ้าช่องไหนมีค่าตรงกับรหัสที่กรอกมา ให้ถือว่าผ่านทันที
+    for (let i = 0; i < data.length; i++) {
+      for (let j = 0; j < data[i].length; j++) {
+        const cellValue = String(data[i][j] || '').trim();
+        // ถ้าเจอค่าที่ตรงกัน (และไม่ใช่คำว่า password ที่เป็นหัวข้อ)
+        if (cellValue === input && cellValue.toLowerCase() !== 'password') {
+          return true;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Login error:', e.toString());
+  }
+  
+  return false;
 }

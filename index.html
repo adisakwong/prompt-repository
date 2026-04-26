@@ -8,9 +8,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card">
+            <h2>🔐 เข้าสู่ระบบ</h2>
+            <p>กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน</p>
+            <form id="loginForm">
+                <input type="password" id="adminPassword" placeholder="รหัสผ่าน" required>
+                <button type="submit" class="btn-submit">เข้าสู่ระบบ</button>
+            </form>
+            <div id="loginStatus"></div>
+        </div>
+    </div>
+
     <header class="app-header">
-        <h1>Prompt Repository</h1>
-        <p>จัดเก็บและค้นหา Prompt ของคุณ</p>
+        <div class="header-content">
+            <h1>Prompt Repository</h1>
+            <p>จัดเก็บและค้นหา Prompt ของคุณ</p>
+        </div>
+        <button id="logoutBtn" class="logout-btn" style="display: none;">ออกจากระบบ 🚪</button>
     </header>
 
     <main class="container">
